@@ -1,0 +1,116 @@
+name: Build RoutineNotify
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: false
+        SKIP_NOTARIZATION: true
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          npm run build:linux
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          npm run build:win
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          npm run build:mac
+        fi
+      shell: bash
+      
+    - name: Upload Linux artifacts
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: routine-notify-linux
+        path: |
+          dist/*.AppImage
+          dist/*.deb
+        retention-days: 30
+        
+    - name: Upload Windows artifacts
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: routine-notify-windows
+        path: |
+          dist/*.exe
+        retention-days: 30
+        
+    - name: Upload macOS artifacts
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: routine-notify-macos
+        path: |
+          dist/*.dmg
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+      actions: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Display structure of downloaded files
+      run: ls -la **/
+      
+    - name: Get package version
+      id: package_version
+      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+    - name: Create Draft Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.package_version.outputs.version }}
+        name: RoutineNotify v${{ steps.package_version.outputs.version }}
+        draft: true
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          routine-notify-linux/*
+          routine-notify-windows/*
+          routine-notify-macos/*
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

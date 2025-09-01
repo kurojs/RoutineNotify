@@ -1,0 +1,492 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.tab-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.tab-btn.active {
+    background: #4890ff;
+    color: white;
+}
+
+/* Content */
+.tab-content {
+    display: none;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-header h2 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #4890ff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #3b82f6;
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Notification Item */
+.notification-item {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.notification-item.disabled {
+    opacity: 0.5;
+}
+
+.notification-toggle {
+    margin-right: 16px;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: #cbd5e1;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-switch.active {
+    background: #4890ff;
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.toggle-switch.active .toggle-slider {
+    transform: translateX(20px);
+}
+
+.notification-info {
+    flex: 1;
+    margin-right: 16px;
+}
+
+.notification-time {
+    font-weight: 600;
+    color: #4890ff;
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    font-size: 0.9rem;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.btn-edit {
+    background: #575d59;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background: #484d4a;
+}
+
+.btn-delete {
+    background: #eb0b0b;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
+}
+
+/* Custom file input */
+.file-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.file-input-wrapper input[type=file] {
+    position: absolute;
+    left: -9999px;
+}
+
+.file-input-label {
+    padding: 8px 16px;
+    background: #f1f5f9;
+    color: #1e293b;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.file-input-label:hover {
+    background: #e2e8f0;
+}
+
+.selected-file {
+    font-size: 0.85rem;
+    color: #4890ff;
+}
+
+/* Todo Input Group */
+.todo-input-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.todo-input-group input {
+    flex: 1;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #1e293b;
+    font-size: 0.9rem;
+}
+
+.todo-input-group input:focus {
+    outline: none;
+    border-color: #4890ff;
+    box-shadow: 0 0 0 2px rgba(72, 144, 255, 0.2);
+}
+
+.todo-input-group input::placeholder {
+    color: #9ca3af;
+}
+
+/* Todo Item */
+.todo-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid #e2e8f0;
+}
+
+.todo-item:hover {
+    background: #f1f5f9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.todo-item.completed {
+    opacity: 0.6;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+}
+
+.todo-checkbox {
+    margin-right: 12px;
+    transform: scale(1.1);
+    cursor: pointer;
+    accent-color: #4890ff;
+}
+
+.todo-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.modal-close:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #1e293b;
+    font-size: 0.9rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #4890ff;
+    box-shadow: 0 0 0 2px rgba(72, 144, 255, 0.2);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+.form-group select option {
+    background: #ffffff;
+    color: #1e293b;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+}
+
+.empty-state h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #475569;
+}
+
+.empty-state p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Scrollbar - Hidden */
+.notifications-list {
+    max-height: 500px;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.notifications-list::-webkit-scrollbar {
+    display: none; /* WebKit */
+}
+
+.todos-list {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.todos-list::-webkit-scrollbar {
+    display: none;
+}
+
+/* Input placeholders */
+::placeholder {
+    color: #9ca3af;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+    box-shadow: 0 0 0 2px rgba(72, 144, 255, 0.2);
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routine Notify</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="notifications">
+                Notifications
+            </button>
+            <button class="tab-btn" data-tab="todos">
+                Tasks
+            </button>
+        </nav>
+
+        <div id="notifications" class="tab-content active">
+            <div class="section-header">
+                <h2>Notifications</h2>
+                <button id="add-notification" class="btn-primary">+ Add</button>
+            </div>
+
+            <div class="notifications-list" id="notifications-list">
+            </div>
+        </div>
+
+        <!-- Tab de Todos -->
+        <div id="todos" class="tab-content">
+            <div class="section-header">
+                <h2>Tasks</h2>
+                <div class="todo-input-group">
+                    <input type="text" id="new-todo-input" placeholder="Enter a new task..." maxlength="100">
+                    <button id="add-todo" class="btn-primary">Add</button>
+                </div>
+            </div>
+
+            <div class="todos-list" id="todos-list">
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Edit Notification</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="notification-form">
+                    <div class="form-group">
+                        <label for="notif-hour">Hour:</label>
+                        <input type="number" id="notif-hour" min="0" max="23" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notif-minute">Minutes:</label>
+                        <input type="number" id="notif-minute" min="0" max="59" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notif-message">Message:</label>
+                        <textarea id="notif-message" placeholder="Enter notification message..." rows="3" maxlength="200" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="notif-icon">Icon:</label>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <select id="notif-icon" style="flex: 1;" required>
+                            </select>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="custom-icon" accept="image/*">
+                                <label for="custom-icon" class="file-input-label">Browse</label>
+                            </div>
+                        </div>
+                        <div id="selected-file" class="selected-file" style="margin-top: 8px; display: none;"></div>
+                        <small style="color: #666; font-size: 12px;">Click 'Browse' to upload a custom icon image (max 2MB)</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="cancel-edit">Cancel</button>
+                        <button type="submit" class="btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

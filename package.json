@@ -1,0 +1,128 @@
+{
+  "name": "routine-notify",
+  "version": "1.0.0",
+  "description": "A cross-platform desktop application for maintaining daily routine through scheduled notifications",
+  "main": "src/main.js",
+  "homepage": "https://github.com/kurojs/RoutineNotify",
+  "author": {
+    "name": "Kuromy",
+    "email": "kuuro.js@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": ["routine", "notifications", "productivity", "electron", "cross-platform"],
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never",
+    "build:win": "electron-builder --win --publish=never",
+    "build:mac": "electron-builder --mac --publish=never", 
+    "build:linux": "electron-builder --linux --publish=never",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.routine.notify",
+    "productName": "RoutineNotify",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "ui/**/*", 
+      "assets/**/*",
+      "build/icon.*",
+      "!data/**/*",
+      "!node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "publisherName": "Kuromy",
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false,
+      "signDlls": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "type": "distribution",
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "Utility",
+      "icon": "build/icon.png",
+      "synopsis": "Daily routine notification manager",
+      "description": "A cross-platform desktop application for maintaining daily routine through scheduled notifications",
+      "desktop": {
+        "Name": "RoutineNotify",
+        "Comment": "Daily routine notification manager",
+        "Categories": "Utility;Office;Productivity"
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "dmg": {
+      "title": "RoutineNotify ${version}",
+      "contents": [
+        {
+          "x": 410,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 150,
+          "type": "file"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kurojs/RoutineNotify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kurojs/RoutineNotify/issues"
+  }
+}
