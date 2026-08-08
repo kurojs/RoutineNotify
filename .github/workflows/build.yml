@@ -55,8 +55,8 @@ jobs:
       with:
         name: routine-notify-linux
         path: |
-          dist/*.AppImage
-          dist/*.deb
+          release/*.AppImage
+          release/*.deb
         retention-days: 30
         
     - name: Upload Windows artifacts
@@ -65,7 +65,7 @@ jobs:
       with:
         name: routine-notify-windows
         path: |
-          dist/*.exe
+          release/*.exe
         retention-days: 30
         
     - name: Upload macOS artifacts
@@ -74,7 +74,7 @@ jobs:
       with:
         name: routine-notify-macos
         path: |
-          dist/*.dmg
+          release/*.dmg
         retention-days: 30
 
   release:
