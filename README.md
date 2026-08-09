@@ -1,8 +1,7 @@
 # RoutineNotify
 
-![GitHub License](https://img.shields.io/github/license/kurojs/RoutineNotify?style=for-the-badge&color=30363d&labelColor=21262d)
-![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux-30363d?style=for-the-badge&labelColor=21262d)
-![UI Languages](https://img.shields.io/badge/ui-9%20languages-30363d?style=for-the-badge&labelColor=21262d)
+![GitHub License](https://img.shields.io/github/license/kurojs/RoutineNotify?style=for-the-badge&color=7FBDAD&labelColor=1F2228)
+![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux-7FBDAD?style=for-the-badge&labelColor=1F2228)
 
 Your routine shouldn't be a list you forget. RoutineNotify turns it into a voice that reminds you — on time, every time.
 
