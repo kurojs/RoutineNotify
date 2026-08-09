@@ -5,9 +5,32 @@ import { RoutinesTab } from './components/RoutinesTab'
 import { TodosTab } from './components/TodosTab'
 import { SettingsTab } from './components/SettingsTab'
 import { cn } from './lib/utils'
-import { getTranslation, type TranslationKey } from './lib/i18n'
+import { getTranslation, translate, type TranslationKey } from './lib/i18n'
+import type { ServiceErrorCode } from '../../shared/types'
 
 type Tab = 'routines' | 'todos' | 'settings'
+
+const ERROR_KEYS: Record<ServiceErrorCode, TranslationKey> = {
+  invalid_api_key: 'errInvalidKey',
+  quota_exceeded: 'errQuotaExceeded',
+  rate_limited: 'errRateLimited',
+  model_not_found: 'errModelNotFound',
+  voice_not_found: 'errVoiceNotFound',
+  permission_denied: 'errPermissionDenied',
+  network_error: 'errNetworkError',
+  empty_response: 'errEmptyResponse',
+  unknown: 'errUnknown'
+}
+
+function serviceErrorText(
+  uiLanguage: string,
+  code: ServiceErrorCode | string,
+  detail?: string
+): string {
+  const key = ERROR_KEYS[code as ServiceErrorCode]
+  if (key) return translate(uiLanguage, key)
+  return detail ?? translate(uiLanguage, 'errUnknown')
+}
 
 function App(): React.JSX.Element {
   const load = useStore((s) => s.load)
@@ -15,28 +38,72 @@ function App(): React.JSX.Element {
   const settings = useStore((s) => s.settings)
   const saveSettings = useStore((s) => s.saveSettings)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioQueueRef = useRef<Array<{ filePath: string; cleanup: boolean; url: string }>>([])
+  const audioPlayingRef = useRef(false)
   const [tab, setTab] = useState<Tab>('routines')
+  const [serviceError, setServiceError] = useState<{ source: 'TTS' | 'AI'; message: string } | null>(null)
 
   const t = getTranslation(settings.uiLanguage)
   const tKey = (key: TranslationKey): string => t[key]
 
   useEffect(() => {
     void load()
-    const unsubscribe = window.api.onAudioPlay(({ filePath, cleanup, url }) => {
-      if (!audioRef.current) {
-        audioRef.current = new Audio()
+
+    const playNext = (): void => {
+      const audio = audioRef.current
+      const next = audioQueueRef.current.shift()
+      if (!next) {
+        audioPlayingRef.current = false
+        return
       }
-      if (cleanup) {
-        audioRef.current.onended = () => {
-          void window.api.cleanupTtsFile(filePath)
+      if (!audio) {
+        audioQueueRef.current.unshift(next)
+        return
+      }
+      audioPlayingRef.current = true
+      audio.onended = () => {
+        if (next.cleanup) {
+          void window.api.cleanupTtsFile(next.filePath)
         }
-      } else {
-        audioRef.current.onended = null
+        playNext()
       }
-      audioRef.current.src = url
-      void audioRef.current.play()
+      audio.onerror = () => {
+        console.error('Audio element error')
+        setServiceError({
+          source: 'TTS',
+          message: serviceErrorText(useStore.getState().settings.uiLanguage, 'empty_response')
+        })
+        window.setTimeout(() => setServiceError(null), 8000)
+        playNext()
+      }
+      audio.src = next.url
+      void audio.play().catch((error: unknown) => {
+        console.error('Audio playback failed:', error)
+        playNext()
+      })
+    }
+
+    const unsubscribe = window.api.onAudioPlay((payload) => {
+      audioQueueRef.current.push(payload)
+      if (!audioPlayingRef.current) {
+        playNext()
+      }
     })
-    return unsubscribe
+    const unsubscribeError = window.api.onTtsError((info) => {
+      console.error('TTS error:', info)
+      setServiceError({ source: 'TTS', message: serviceErrorText(settings.uiLanguage, info.code, info.detail) })
+      window.setTimeout(() => setServiceError(null), 8000)
+    })
+    const unsubscribeAiError = window.api.onAiError((info) => {
+      console.error('AI error:', info)
+      setServiceError({ source: 'AI', message: serviceErrorText(settings.uiLanguage, info.code, info.detail) })
+      window.setTimeout(() => setServiceError(null), 8000)
+    })
+    return () => {
+      unsubscribe()
+      unsubscribeError()
+      unsubscribeAiError()
+    }
   }, [load])
 
   const toggleTheme = (): void => {
@@ -59,9 +126,16 @@ function App(): React.JSX.Element {
 
   return (
     <div className="flex h-screen bg-background">
-      <aside className="flex w-56 flex-col border-r bg-card/50">
+      <audio ref={audioRef} className="hidden" />
+      {serviceError && (
+        <div className="fixed bottom-4 right-4 z-50 max-w-sm rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive shadow-lg">
+          <p className="font-medium">{serviceError.source}</p>
+          <p className="mt-1 text-destructive/90">{serviceError.message}</p>
+        </div>
+      )}
+      <aside className="flex w-56 flex-col border-r bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-3 border-b px-4 py-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#74AA9C] to-[#4E8576] shadow-lg shadow-[#74AA9C]/25">
             <CalendarClock className="h-5 w-5 text-white" />
           </div>
           <div className="min-w-0">

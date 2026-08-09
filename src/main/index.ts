@@ -1,9 +1,9 @@
 import { app, BrowserWindow, Notification, Tray, Menu, ipcMain, nativeImage, shell } from 'electron'
 import { join } from 'path'
-import { pathToFileURL } from 'url'
+import { readFile } from 'fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { Scheduler } from './scheduler'
-import { generateMessage, buildAiPrompt } from './ai'
+import { generateMessage, buildAiPrompt, listGeminiModels } from './ai'
 import { synthesizeSpeech } from './tts'
 import {
   loadRoutines,
@@ -21,10 +21,11 @@ import type {
   BackupData,
   ImportResult
 } from '../shared/types'
-import { isSoundPreset, isCustomSound, getCustomSoundName } from '../shared/types'
+import { isCustomSound, getCustomSoundName, migrateRoutine } from '../shared/types'
 
 app.setName('Routine Notify')
 app.setAppUserModelId('com.routine.notify')
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 
 let tray: Tray | null = null
 let mainWindow: BrowserWindow | null = null
@@ -37,6 +38,7 @@ let currentSettings: Settings = {
   geminiApiKey: '',
   elevenLabsApiKey: '',
   voiceId: 'h3KZVBOooxHZiKRxnsdE',
+  geminiModel: 'gemini-2.5-flash',
   language: 'English',
   uiLanguage: 'en',
   theme: 'light'
@@ -106,7 +108,9 @@ function createMainWindow(): void {
     icon: getIconPath() ?? undefined,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      backgroundThrottling: false,
+      devTools: false
     }
   })
 
@@ -130,6 +134,10 @@ function createMainWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+}
+
+function formatClock(hour: number, minute: number): string {
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
 function showNotification(title: string, message: string, iconPath?: string): void {
@@ -167,30 +175,67 @@ function getCustomSoundDir(): string {
   return join(app.getPath('userData'), 'custom-sounds')
 }
 
-function getPresetSoundPath(preset: string): string {
-  if (!app.isPackaged) {
-    return join(__dirname, '../../build/sounds', `${preset}.wav`)
-  }
-  return join(process.resourcesPath, 'sounds', `${preset}.wav`)
+const AUDIO_MIME: Record<string, string> = {
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
+  '.oga': 'audio/ogg',
+  '.m4a': 'audio/mp4',
+  '.flac': 'audio/flac'
+}
+
+const IMAGE_MIME: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml'
+}
+
+async function fileToDataUrl(filePath: string, mime: string): Promise<string> {
+  const buffer = await readFile(filePath)
+  return `data:${mime};base64,${buffer.toString('base64')}`
 }
 
 async function playAudio(filePath: string, cleanup: boolean): Promise<void> {
-  mainWindow?.webContents.send('audio:play', { filePath, cleanup, url: pathToFileURL(filePath).href })
+  const ext = filePath.slice(filePath.lastIndexOf('.')).toLowerCase()
+  const mime = AUDIO_MIME[ext] ?? 'audio/mpeg'
+  try {
+    const url = await fileToDataUrl(filePath, mime)
+    mainWindow?.webContents.send('audio:play', { filePath, cleanup, url })
+  } catch (error) {
+    console.error('Failed to load audio file:', error)
+  }
+}
+
+function sendTtsError(code: string, detail?: string): void {
+  mainWindow?.webContents.send('tts:error', { code, detail })
+}
+
+function sendAiError(code: string, detail?: string): void {
+  mainWindow?.webContents.send('ai:error', { code, detail })
 }
 
 async function onRoutineTrigger(routine: Routine): Promise<void> {
   const { settings } = { settings: currentSettings }
-  let message = routine.message
 
   const aiReady = routine.useAI && settings.geminiApiKey && settings.elevenLabsApiKey
+  let spokenMessage = routine.description?.trim() || routine.title
+
   if (aiReady) {
     try {
-      const prompt = buildAiPrompt(routine, settings.language, routine.message)
-      const result = await generateMessage(settings.geminiApiKey, prompt)
-      message = result.message
+      const prompt = buildAiPrompt(routine, settings.language)
+      const result = await generateMessage(
+        settings.geminiApiKey,
+        settings.geminiModel,
+        prompt
+      )
+      spokenMessage = result.message
     } catch (error) {
-      console.error('AI generation failed, using fallback message:', error)
-      message = routine.message
+      const detail = error instanceof Error ? error.message : String(error)
+      console.error('AI generation failed, using fallback message:', detail)
+      const code = detail.includes('not configured') ? 'unknown' : detail
+      sendAiError(code, detail)
     }
   }
 
@@ -198,25 +243,25 @@ async function onRoutineTrigger(routine: Routine): Promise<void> {
     ? getCustomIconPath(routine.icon)
     : undefined
 
-  showNotification(routine.message, message, customIconPath)
+  const notificationBody = routine.description?.trim() || formatClock(routine.hour, routine.minute)
+  showNotification(routine.title, notificationBody, customIconPath)
 
-  if (routine.sound) {
-    const soundPath = isSoundPreset(routine.sound)
-      ? getPresetSoundPath(routine.sound)
-      : isCustomSound(routine.sound)
-        ? getCustomSoundPath(getCustomSoundName(routine.sound))
-        : null
-    if (soundPath) {
-      await playAudio(soundPath, false)
-    }
+  if (routine.sound && isCustomSound(routine.sound)) {
+    const soundPath = getCustomSoundPath(getCustomSoundName(routine.sound))
+    await playAudio(soundPath, false)
   }
 
   if (aiReady) {
     try {
-      const audio = await synthesizeSpeech(message, settings.elevenLabsApiKey, settings.voiceId)
+      const audio = await synthesizeSpeech(spokenMessage, settings.elevenLabsApiKey, settings.voiceId)
       await playAudio(audio.filePath, true)
     } catch (error) {
-      console.error('TTS failed:', error)
+      const code = error instanceof Error && 'code' in error && typeof error.code === 'string'
+        ? error.code
+        : 'unknown'
+      const detail = error instanceof Error ? error.message : String(error)
+      console.error('TTS failed:', detail)
+      sendTtsError(code, detail)
     }
   }
 }
@@ -311,10 +356,10 @@ function setupIpc(): void {
     let todos: Todo[]
 
     if (Array.isArray(parsed)) {
-      routines = parsed
+      routines = parsed.map(migrateRoutine)
       todos = await loadTodos()
     } else if (parsed && Array.isArray(parsed.routines)) {
-      routines = parsed.routines
+      routines = parsed.routines.map(migrateRoutine)
       todos = Array.isArray(parsed.todos) ? parsed.todos : await loadTodos()
       await restoreAssets(parsed.icons, getCustomIconDir())
       await restoreAssets(parsed.sounds, getCustomSoundDir())
@@ -342,6 +387,18 @@ function setupIpc(): void {
     currentSettings = settings
     await saveSettings(settings)
     return true
+  })
+
+  ipcMain.handle('ai:models', async () => {
+    const key = currentSettings.geminiApiKey
+    if (!key) return []
+    try {
+      return await listGeminiModels(key)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      sendAiError('unknown', detail)
+      return []
+    }
   })
 
   ipcMain.handle('tts:cleanup', async (_event, filePath: string) => {
@@ -378,7 +435,7 @@ function setupIpc(): void {
   }
 
   const saveCustomAsset = async (
-    fileBuffer: Buffer,
+    fileBuffer: Uint8Array,
     fileName: string,
     dir: string
   ): Promise<string> => {
@@ -393,9 +450,10 @@ function setupIpc(): void {
   }
 
   ipcMain.handle('icons:list', () => listCustomAssets(getCustomIconDir(), ['.png', '.jpg', '.jpeg', '.ico', '.svg']))
-  ipcMain.handle('icons:url', (_event, fileName: string) =>
-    pathToFileURL(getCustomIconPath(fileName)).href
-  )
+  ipcMain.handle('icons:url', async (_event, fileName: string) => {
+    const ext = fileName.slice(fileName.lastIndexOf('.')).toLowerCase()
+    return fileToDataUrl(getCustomIconPath(fileName), IMAGE_MIME[ext] ?? 'image/png')
+  })
   ipcMain.handle('icons:save', (_event, buffer: Buffer, fileName: string) =>
     saveCustomAsset(buffer, fileName, getCustomIconDir())
   )
@@ -409,6 +467,10 @@ function setupIpc(): void {
 
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.routine.notify')
+
+  if (process.platform !== 'darwin') {
+    Menu.setApplicationMenu(null)
+  }
 
   if (is.dev && process.platform === 'win32') {
     try {

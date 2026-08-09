@@ -93,10 +93,20 @@ export function RoutinesTab(): React.JSX.Element {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => void doImport()} title="Import">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => void doImport()}
+            title={translate(uiLanguage, 'import')}
+          >
             <Upload className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={() => void doExport()} title="Export">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => void doExport()}
+            title={translate(uiLanguage, 'export')}
+          >
             <Download className="h-4 w-4" />
           </Button>
           <Button onClick={openAdd}>
@@ -144,7 +154,7 @@ export function RoutinesTab(): React.JSX.Element {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{routine.message}</p>
+                  <p className="truncate font-medium">{routine.title}</p>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1 font-mono tabular-nums">
                       <Clock3 className="h-3 w-3" />

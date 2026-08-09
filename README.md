@@ -4,64 +4,167 @@
 ![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux-30363d?style=for-the-badge&labelColor=21262d)
 ![UI Languages](https://img.shields.io/badge/ui-9%20languages-30363d?style=for-the-badge&labelColor=21262d)
 
-A cross-platform desktop application that keeps you on track with your daily routine through **scheduled notifications**, **custom sounds**, **custom icons**, **AI-generated messages** and **text-to-speech voice**.
+**RoutineNotify** is a cross-platform desktop app that keeps you on track with your daily routine. You schedule a time, and it reminds you with a **notification**, a **custom sound**, and optionally an **AI-written message** read aloud with **text-to-speech**.
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="33%">
+      <img src="https://i.imgur.com/ho67x8e.png" width="100%" alt="Routines view">
+      <p align="center"><strong>Routines</strong><br>Your schedule at a glance. Each routine shows its time, icon, sound and AI status, with one-click enable/disable.</p>
+    </td>
+    <td width="33%">
+      <img src="https://i.imgur.com/y8NcBQ0.png" width="100%" alt="Edit routine dialog">
+      <p align="center"><strong>Edit routine</strong><br>Create or edit a routine: pick the time, message, icon, sound and whether an AI message should be generated.</p>
+    </td>
+    <td width="33%">
+      <img src="https://i.imgur.com/nhN14Qi.png" width="100%" alt="Settings view">
+      <p align="center"><strong>Settings</strong><br>Configure your Gemini and ElevenLabs API keys, pick the UI language and switch between light and dark theme.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%">
+      <img src="https://i.imgur.com/kDWZrvk.png" width="100%" alt="Tasks view">
+      <p align="center"><strong>Tasks</strong><br>A simple built-in to-do list to keep track of what's left for the day.</p>
+    </td>
+    <td width="33%">
+      <img src="https://i.imgur.com/P0tbMJ2.png" width="100%" alt="Windows notification">
+      <p align="center"><strong>Notification</strong><br>What you see when a routine fires: the message, your custom icon, and your chosen sound.</p>
+    </td>
+    <td width="33%"></td>
+  </tr>
+</table>
+
+---
 
 ## Features
 
-- **Scheduled notifications** — set the exact time for each routine.
-- **Custom icons** — attach any image to a routine.
-- **Custom sounds** — pick a built-in sound or upload your own audio file.
+- **Scheduled notifications** — set the exact time for each routine (24h).
+- **Custom sounds** — attach your own audio file (MP3, WAV, OGG, M4A, FLAC) to any routine.
+- **Custom icons** — attach any image (PNG, JPG, ICO, SVG) to a routine.
 - **AI messages** — Gemini generates a fresh, motivational message for each routine.
-- **Text-to-speech** — ElevenLabs reads the message aloud (only when AI is enabled).
+- **Text-to-speech** — ElevenLabs reads the message aloud.
 - **Task list** — a simple built-in to-do list.
 - **System tray** — runs quietly in the background and restores on double-click.
-- **Full backup** — export/import everything (routines, tasks, images and sounds) in a single JSON file.
+- **Full backup** — export and import everything (routines, tasks, images and sounds) in a single JSON file.
 - **Cross-platform** — Windows, macOS and Linux.
 - **9 UI languages** — English, Español, 日本語, Français, Deutsch, Italiano, Português, 한국어, 中文.
+
+---
 
 ## Installation
 
 Download the installer for your OS from the [releases page](https://github.com/kurojs/RoutineNotify/releases):
 
-- **Windows:** `.exe` (NSIS installer)
-- **macOS:** `.dmg`
-- **Linux:** `.AppImage` or `.deb`
+| OS | File |
+| --- | --- |
+| **Windows** | `RoutineNotify Setup <version>.exe` (NSIS installer) |
+| **macOS** | `RoutineNotify-<version>.dmg` |
+| **Linux** | `.AppImage` or `.deb` |
 
-## Usage
+> On Windows, if you see a SmartScreen warning, click **More info → Run anyway**. The app is not code-signed yet.
 
-1. Launch the app. It starts minimized in the system tray.
-2. Open the main window (double-click the tray icon or right-click → *Open Settings*).
-3. Go to **Routines** and create your first routine: pick a time, a message, an icon and a sound.
-4. You'll get a notification at the scheduled time with the sound you chose.
+---
 
-### Creating a routine
+## Quick start
 
-Each routine has:
+1. **Install** the app and launch it. It starts minimized in the system tray.
+2. **Open the main window** — double-click the tray icon, or right-click it → *Open*.
+3. Go to **Routines → New routine**, pick a time and a message, save, and make sure the routine is **enabled**.
+4. When the time comes, you'll get a notification with your sound.
+
+---
+
+## How to use
+
+### Routines
+
+The **Routines** tab is the heart of the app. It lists every routine with its time, icon, sound and AI state.
+
+- **New routine** / **edit** (pencil icon) — opens the *Edit routine* dialog.
+- **Enable / disable** — toggle a routine on or off without deleting it. Disabled routines never fire.
+- **Delete** (trash icon) — removes the routine permanently.
+- **Test** — fires the routine immediately, so you can preview the notification, sound and AI message.
+
+Each routine has the following fields:
 
 | Field | Description |
 | --- | --- |
-| **Hour / Minutes** | When the reminder fires (24h). |
+| **Hour / Minutes** | When the reminder fires (24h format). |
 | **Message** | The text shown in the notification. |
 | **Icon** | Optional custom image (PNG, JPG, ICO, SVG, up to 2 MB). |
-| **Sound** | `None`, one of the built-in sounds, or your own audio file (MP3, WAV, OGG, M4A, FLAC). |
+| **Sound** | `None` or one of the built-in sounds, or your own audio file (MP3, WAV, OGG, M4A, FLAC). |
 | **AI message** | When enabled, Gemini writes the message and ElevenLabs reads it aloud. |
 
-The **AI message** toggle needs **both** API keys configured in Settings. If AI is disabled (or a key is missing), the app uses the message you wrote — like a plain vanilla notification.
+### Tasks
+
+The **Tasks** tab is a lightweight to-do list:
+
+- **Add** a task with the input at the top and press **Enter**.
+- **Check** a task to mark it done — it moves to the bottom with a strikethrough.
+- **Delete** a task with the trash icon.
+
+Tasks are saved automatically. There is no scheduling attached to them — they are a plain checklist.
+
+### Settings
+
+| Section | What it does |
+| --- | --- |
+| **AI assistant** | Your Gemini and ElevenLabs API keys, the Gemini model, the voice used for speech, and the message language. |
+| **General** | UI language and light/dark theme. |
+
+### System tray
+
+- The app keeps running in the tray even when you close the window.
+- **Double-click** the tray icon to open the main window.
+- **Right-click** for *Open*, *Open Settings* and *Quit*.
+- **Close** the window (✕) hides it to the tray; use **Quit** from the tray to fully exit.
+
+---
 
 ## AI configuration
 
-Go to **Settings → AI assistant**:
+The AI features need **two API keys**:
 
-1. **Gemini API key** — get a free key at [aistudio.google.com](https://aistudio.google.com).
-2. **ElevenLabs API key** — get one at [elevenlabs.io](https://elevenlabs.io).
+1. **Gemini API key** (writes the messages) — get a free key at [aistudio.google.com](https://aistudio.google.com).
+2. **ElevenLabs API key** (reads the messages aloud) — get one at [elevenlabs.io](https://elevenlabs.io).
 
-Both keys are required for AI messages. The **message language** selector controls the language Gemini writes in.
+Setup checklist:
+
+- [ ] Open **Settings → AI assistant**.
+- [ ] Paste the **Gemini API key**.
+- [ ] Paste the **ElevenLabs API key**.
+- [ ] Pick the **voice** you want the app to speak with.
+- [ ] Pick the **message language** Gemini should write in.
+- [ ] Enable the **AI message** toggle on any routine.
+
+> **Both keys are required** for AI messages. If AI is disabled on a routine — or a key is missing — the app just shows the message you wrote, like a plain vanilla notification. That's the expected fallback.
+
+---
+
+## Custom sounds and icons
+
+You can upload your own **audio files** and **images** while creating or editing a routine:
+
+- **Sounds**: MP3, WAV, OGG, OGA, M4A, FLAC.
+- **Icons**: PNG, JPG, JPEG, ICO, SVG (up to 2 MB).
+
+Uploaded files are stored inside the app's `user-data` directory and referenced by name. That means the app works across devices **without hard-coded paths** — and because they travel with your backup (see below), you can move to another machine and everything still works.
+
+---
 
 ## Import / Export
 
-Routines are stored locally as JSON files. You can export everything with the **Export** button and restore it with **Import**.
+Use the **Export** and **Import** buttons to move your data between machines or keep a backup.
 
-The exported file is a single JSON document (`.json`) with this shape:
+- **Export** saves a single self-contained JSON file with your routines, tasks, custom icons and custom sounds.
+- **Import** restores everything from that file. Old v1 backups (a plain array of routines, without `version`) are still importable.
+- **API keys are never exported.**
+
+The exported file has this shape:
 
 ```jsonc
 {
@@ -74,7 +177,7 @@ The exported file is a single JSON document (`.json`) with this shape:
       "minute": 0,
       "message": "Morning routine",
       "icon": "custom_ab12cd34ef56.png",
-      "sound": "chime",                 // preset name, "file:custom_....wav", or ""
+      "sound": "file:custom_....wav",     // "" or "file:<custom-file>"
       "enabled": true,
       "useAI": false
     }
@@ -97,31 +200,29 @@ The exported file is a single JSON document (`.json`) with this shape:
 }
 ```
 
-What is included:
+Only the assets actually referenced by your routines are embedded. On import, custom files are written back into the app's `user-data` directory.
 
-- **Every field of every routine** — time, message, icon, sound, enabled state and the AI toggle.
-- **Every task** with its completion state (`completed` / `completedAt`).
-- **Custom images and sounds** are embedded as base64 inside the same file, so the backup is **self-contained**: importing it on another machine restores the files too.
-
-The export captures only the assets actually referenced by your routines. On import, custom files are written back into the app's `user-data` directory and referenced again. API keys are **never** exported.
-
-> Old v1 backups (a plain array of routines, without `version`) are still importable.
+---
 
 ## Data storage
 
-Data is stored in the Electron `userData` directory for your platform:
+RoutineNotify stores data in the Electron `userData` directory for your platform:
 
 - **Windows:** `%APPDATA%\Routine Notify\`
 - **macOS:** `~/Library/Application Support/Routine Notify/`
 - **Linux:** `~/.config/Routine Notify/`
 
-| File | Contents |
+| File / folder | Contents |
 | --- | --- |
 | `routines.json` | Your routines |
 | `todos.json` | Your task list |
 | `settings.json` | API keys, language and theme |
 | `custom-icons/` | Uploaded images |
 | `custom-sounds/` | Uploaded audio files |
+
+> Deleting this folder resets the app completely. Make an export first if you care about the data.
+
+---
 
 ## Development
 
@@ -131,7 +232,7 @@ Requirements: Node.js 18+ and npm.
 # install dependencies
 npm install
 
-# run in development (also regenerates preset sounds)
+# run in development
 npm run dev
 
 # typecheck
@@ -146,8 +247,6 @@ npm run build:mac   # macOS .dmg
 npm run build:linux # Linux AppImage + .deb
 ```
 
-The built-in sounds are synthesized at build time by `scripts/generate-sounds.cjs` (`npm run sounds`). No external audio assets are committed.
-
 ## Tech stack
 
 - **Electron 33** + **electron-vite**
@@ -155,6 +254,8 @@ The built-in sounds are synthesized at build time by `scripts/generate-sounds.cj
 - **Tailwind CSS 4** + **shadcn/ui**-style components (Radix UI)
 - **Gemini API** (`gemini-2.5-flash`) for AI messages
 - **ElevenLabs API** (`eleven_flash_v2_5`) for text-to-speech
+
+---
 
 ## License
 

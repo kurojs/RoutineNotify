@@ -1,4 +1,11 @@
-import type { Routine, Todo, Settings, ImportResult } from '../shared/types'
+import type {
+  Routine,
+  Todo,
+  Settings,
+  ImportResult,
+  GeminiModel,
+  ServiceErrorInfo
+} from '../shared/types'
 
 declare global {
   interface Window {
@@ -12,17 +19,20 @@ declare global {
       saveTodos: (todos: Todo[]) => Promise<boolean>
       getSettings: () => Promise<Settings>
       saveSettings: (settings: Settings) => Promise<boolean>
+      listModels: () => Promise<GeminiModel[]>
       cleanupTtsFile: (filePath: string) => Promise<boolean>
       openExternal: (url: string) => Promise<boolean>
       listIcons: () => Promise<string[]>
       getIconUrl: (fileName: string) => Promise<string>
-      saveIcon: (buffer: Buffer, fileName: string) => Promise<string>
+      saveIcon: (buffer: Uint8Array, fileName: string) => Promise<string>
       listSounds: () => Promise<string[]>
       getSoundPath: (fileName: string) => Promise<string>
-      saveSound: (buffer: Buffer, fileName: string) => Promise<string>
+      saveSound: (buffer: Uint8Array, fileName: string) => Promise<string>
       onAudioPlay: (
         callback: (payload: { filePath: string; cleanup: boolean; url: string }) => void
       ) => () => void
+      onTtsError: (callback: (info: ServiceErrorInfo) => void) => () => void
+      onAiError: (callback: (info: ServiceErrorInfo) => void) => () => void
     }
   }
 }

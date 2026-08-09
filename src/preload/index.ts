@@ -1,5 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Routine, Todo, Settings, ImportResult } from '../shared/types'
+import type {
+  Routine,
+  Todo,
+  Settings,
+  ImportResult,
+  GeminiModel,
+  ServiceErrorInfo
+} from '../shared/types'
 
 const api = {
   getRoutines: (): Promise<Routine[]> => ipcRenderer.invoke('routines:get'),
@@ -14,18 +21,19 @@ const api = {
   getSettings: (): Promise<Settings> => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings: Settings): Promise<boolean> =>
     ipcRenderer.invoke('settings:save', settings),
+  listModels: (): Promise<GeminiModel[]> => ipcRenderer.invoke('ai:models'),
   cleanupTtsFile: (filePath: string): Promise<boolean> =>
     ipcRenderer.invoke('tts:cleanup', filePath),
   openExternal: (url: string): Promise<boolean> =>
     ipcRenderer.invoke('shell:openExternal', url),
   listIcons: (): Promise<string[]> => ipcRenderer.invoke('icons:list'),
   getIconUrl: (fileName: string): Promise<string> => ipcRenderer.invoke('icons:url', fileName),
-  saveIcon: (buffer: Buffer, fileName: string): Promise<string> =>
+  saveIcon: (buffer: Uint8Array, fileName: string): Promise<string> =>
     ipcRenderer.invoke('icons:save', buffer, fileName),
   listSounds: (): Promise<string[]> => ipcRenderer.invoke('sounds:list'),
   getSoundPath: (fileName: string): Promise<string> =>
     ipcRenderer.invoke('sounds:path', fileName),
-  saveSound: (buffer: Buffer, fileName: string): Promise<string> =>
+  saveSound: (buffer: Uint8Array, fileName: string): Promise<string> =>
     ipcRenderer.invoke('sounds:save', buffer, fileName),
   onAudioPlay: (
     callback: (payload: { filePath: string; cleanup: boolean; url: string }) => void
@@ -39,6 +47,24 @@ const api = {
     ipcRenderer.on('audio:play', listener)
     return () => {
       ipcRenderer.removeListener('audio:play', listener)
+    }
+  },
+  onTtsError: (callback: (info: ServiceErrorInfo) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, info: ServiceErrorInfo): void => {
+      callback(info)
+    }
+    ipcRenderer.on('tts:error', listener)
+    return () => {
+      ipcRenderer.removeListener('tts:error', listener)
+    }
+  },
+  onAiError: (callback: (info: ServiceErrorInfo) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, info: ServiceErrorInfo): void => {
+      callback(info)
+    }
+    ipcRenderer.on('ai:error', listener)
+    return () => {
+      ipcRenderer.removeListener('ai:error', listener)
     }
   }
 }

@@ -1,8 +1,8 @@
 import { app } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import type { AppData, Routine, Settings, Todo } from '../shared/types'
-import { DEFAULT_SETTINGS as DEFAULT_SETTINGS_SHARED } from '../shared/types'
+import type { AppData, LegacyRoutine, Routine, Settings, Todo } from '../shared/types'
+import { DEFAULT_SETTINGS as DEFAULT_SETTINGS_SHARED, migrateRoutine } from '../shared/types'
 
 const DEFAULT_SETTINGS = DEFAULT_SETTINGS_SHARED
 
@@ -12,7 +12,8 @@ const DEFAULT_DATA: AppData = {
       id: 1,
       hour: 9,
       minute: 0,
-      message: 'Morning routine',
+      title: 'Morning routine',
+      description: '',
       icon: '',
       sound: '',
       enabled: true,
@@ -22,7 +23,8 @@ const DEFAULT_DATA: AppData = {
       id: 2,
       hour: 18,
       minute: 0,
-      message: 'Evening break',
+      title: 'Evening break',
+      description: '',
       icon: '',
       sound: '',
       enabled: true,
@@ -63,8 +65,8 @@ async function writeJson(filePath: string, data: unknown): Promise<void> {
 }
 
 export async function loadRoutines(): Promise<Routine[]> {
-  const routines = await readJson<Routine[]>(getRoutinesPath(), DEFAULT_DATA.routines)
-  return routines.map((r) => ({ ...r, sound: r.sound ?? '', useAI: r.useAI ?? false }))
+  const routines = await readJson<LegacyRoutine[]>(getRoutinesPath(), DEFAULT_DATA.routines)
+  return routines.map(migrateRoutine)
 }
 
 export async function saveRoutines(routines: Routine[]): Promise<void> {

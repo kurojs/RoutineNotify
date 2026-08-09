@@ -21,7 +21,6 @@ import {
   SelectValue
 } from './ui/select'
 import type { Routine } from '../../../shared/types'
-import { SOUND_PRESETS } from '../../../shared/types'
 
 interface RoutineDialogProps {
   open: boolean
@@ -44,7 +43,8 @@ export function RoutineDialog({
 
   const [hour, setHour] = useState('09')
   const [minute, setMinute] = useState('00')
-  const [message, setMessage] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [icon, setIcon] = useState('')
   const [sound, setSound] = useState('')
   const [useAI, setUseAI] = useState(false)
@@ -58,14 +58,16 @@ export function RoutineDialog({
       if (editing) {
         setHour(String(editing.hour))
         setMinute(String(editing.minute).padStart(2, '0'))
-        setMessage(editing.message)
+        setTitle(editing.title)
+        setDescription(editing.description ?? '')
         setIcon(editing.icon)
         setSound(editing.sound ?? '')
         setUseAI(editing.useAI)
       } else {
         setHour('09')
         setMinute('00')
-        setMessage('')
+        setTitle('')
+        setDescription('')
         setIcon('')
         setSound('')
         setUseAI(false)
@@ -85,12 +87,16 @@ export function RoutineDialog({
       setError(translate(uiLanguage, 'errMinute'))
       return
     }
-    if (!message.trim()) {
-      setError(translate(uiLanguage, 'errMessage'))
+    if (!title.trim()) {
+      setError(translate(uiLanguage, 'errTitle'))
       return
     }
-    if (message.length > 200) {
-      setError(translate(uiLanguage, 'errMessageLen'))
+    if (title.length > 60) {
+      setError(translate(uiLanguage, 'errTitleLen'))
+      return
+    }
+    if (description.length > 200) {
+      setError(translate(uiLanguage, 'errDescriptionLen'))
       return
     }
 
@@ -98,7 +104,16 @@ export function RoutineDialog({
       await saveRoutines(
         routines.map((r) =>
           r.id === editing.id
-            ? { ...r, hour: h, minute: m, message: message.trim(), icon, sound, useAI }
+            ? {
+                ...r,
+                hour: h,
+                minute: m,
+                title: title.trim(),
+                description: description.trim(),
+                icon,
+                sound,
+                useAI
+              }
             : r
         )
       )
@@ -110,7 +125,8 @@ export function RoutineDialog({
           id: nextId,
           hour: h,
           minute: m,
-          message: message.trim(),
+          title: title.trim(),
+          description: description.trim(),
           icon,
           sound,
           useAI,
@@ -132,7 +148,7 @@ export function RoutineDialog({
       return
     }
     const buffer = await file.arrayBuffer()
-    const name = await window.api.saveIcon(Buffer.from(buffer), file.name)
+    const name = await window.api.saveIcon(new Uint8Array(buffer), file.name)
     await reloadIcons()
     setIcon(name)
     setError('')
@@ -145,7 +161,7 @@ export function RoutineDialog({
       return
     }
     const buffer = await file.arrayBuffer()
-    const name = await window.api.saveSound(Buffer.from(buffer), file.name)
+    const name = await window.api.saveSound(new Uint8Array(buffer), file.name)
     await reloadSounds()
     setSound(`file:${name}`)
     setError('')
@@ -190,13 +206,24 @@ export function RoutineDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">{translate(uiLanguage, 'message')}</Label>
+            <Label htmlFor="title">{translate(uiLanguage, 'title')}</Label>
             <Input
-              id="message"
-              placeholder={translate(uiLanguage, 'messagePlaceholder')}
-              value={message}
+              id="title"
+              placeholder={translate(uiLanguage, 'titlePlaceholder')}
+              value={title}
+              maxLength={60}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">{translate(uiLanguage, 'description')}</Label>
+            <Input
+              id="description"
+              placeholder={translate(uiLanguage, 'descriptionPlaceholder')}
+              value={description}
               maxLength={200}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
@@ -242,11 +269,6 @@ export function RoutineDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">{translate(uiLanguage, 'noSound')}</SelectItem>
-                  {SOUND_PRESETS.map((preset) => (
-                    <SelectItem key={preset.value} value={preset.value}>
-                      {preset.label}
-                    </SelectItem>
-                  ))}
                   {sounds.map((soundName) => (
                     <SelectItem key={soundName} value={`file:${soundName}`}>
                       {soundName}

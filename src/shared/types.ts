@@ -2,25 +2,28 @@ export interface Routine {
   id: number
   hour: number
   minute: number
-  message: string
+  title: string
+  description: string
   icon: string
   sound: string
   enabled: boolean
   useAI: boolean
 }
 
-export const SOUND_PRESETS = [
-  { value: 'beep', label: 'Beep' },
-  { value: 'ding', label: 'Ding' },
-  { value: 'chime', label: 'Chime' },
-  { value: 'pop', label: 'Pop' },
-  { value: 'marimba', label: 'Marimba' }
-] as const
+export type LegacyRoutine = Routine & { message?: string }
 
-export type SoundPreset = (typeof SOUND_PRESETS)[number]['value']
-
-export function isSoundPreset(value: string): value is SoundPreset {
-  return SOUND_PRESETS.some((p) => p.value === value)
+export function migrateRoutine(raw: Partial<LegacyRoutine>): Routine {
+  return {
+    id: raw.id ?? 0,
+    hour: raw.hour ?? 9,
+    minute: raw.minute ?? 0,
+    title: raw.title ?? raw.message ?? '',
+    description: raw.description ?? '',
+    icon: raw.icon ?? '',
+    sound: raw.sound ?? '',
+    enabled: raw.enabled ?? true,
+    useAI: raw.useAI ?? false
+  }
 }
 
 export function isCustomSound(value: string): boolean {
@@ -69,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   geminiApiKey: '',
   elevenLabsApiKey: '',
   voiceId: 'h3KZVBOooxHZiKRxnsdE',
+  geminiModel: 'gemini-2.5-flash',
   language: 'English',
   uiLanguage: 'en',
   theme: 'light'
@@ -78,9 +82,32 @@ export interface Settings {
   geminiApiKey: string
   elevenLabsApiKey: string
   voiceId: string
+  geminiModel: string
   language: string
   uiLanguage: string
   theme: Theme
+}
+
+export interface GeminiModel {
+  name: string
+  displayName: string
+  freeTier: boolean
+}
+
+export type ServiceErrorCode =
+  | 'invalid_api_key'
+  | 'quota_exceeded'
+  | 'rate_limited'
+  | 'model_not_found'
+  | 'voice_not_found'
+  | 'permission_denied'
+  | 'network_error'
+  | 'empty_response'
+  | 'unknown'
+
+export interface ServiceErrorInfo {
+  code: ServiceErrorCode
+  detail?: string
 }
 
 export interface AppData {

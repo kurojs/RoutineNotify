@@ -5,7 +5,7 @@
   "main": "./out/main/index.js",
   "homepage": "https://github.com/kurojs/RoutineNotify",
   "author": {
-    "name": "Kuromy",
+    "name": "kuro",
     "email": "kuuro.js@gmail.com"
   },
   "license": "MIT",
@@ -21,9 +21,6 @@
   "scripts": {
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
-    "sounds": "node scripts/generate-sounds.cjs",
-    "predev": "node scripts/generate-sounds.cjs",
-    "prebuild": "node scripts/generate-sounds.cjs",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
@@ -86,10 +83,6 @@
       {
         "from": "build/icon.ico",
         "to": "icon.ico"
-      },
-      {
-        "from": "build/sounds",
-        "to": "sounds"
       }
     ],
     "win": {
@@ -101,10 +94,9 @@
           ]
         }
       ],
-      "publisherName": "Kuromy",
+      "publisherName": "kuro",
       "icon": "build/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "signAndEditExecutable": false,
       "signDlls": false
     },
     "mac": {
