@@ -12,6 +12,7 @@ jobs:
   build:
     name: Build ${{ matrix.name }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: Windows
@@ -33,10 +34,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -49,7 +50,9 @@ jobs:
         run: npm ci
 
       - name: Build and package
-        run: ${{ matrix.command }}
+        shell: bash
+        run: |
+          ${{ matrix.command }} || ${{ matrix.command }}
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
