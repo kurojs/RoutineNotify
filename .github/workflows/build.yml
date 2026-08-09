@@ -28,7 +28,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Install dependencies
@@ -41,11 +41,11 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          npm run build:linux
+          npm run build:linux || npm run build:linux
         elif [ "$RUNNER_OS" == "Windows" ]; then
-          npm run build:win
+          npm run build:win || npm run build:win
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          npm run build:mac
+          npm run build:mac || npm run build:mac
         fi
       shell: bash
       
