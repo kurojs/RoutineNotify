@@ -45,8 +45,8 @@ Your routine shouldn't be a list you forget. RoutineNotify turns it into a voice
 
 Download the installer from the [releases page](https://github.com/kurojs/RoutineNotify/releases):
 
-- **Windows:** `RoutineNotify Setup <version>.exe`
-- **macOS:** `RoutineNotify-<version>.dmg`
+- **Windows:** `RoutineNotify.Setup.<version>.exe`
+- **macOS:** `RoutineNotify-<version>.dmg` (Intel) and `RoutineNotify-<version>-arm64.dmg` (Apple Silicon)
 - **Linux:** `.AppImage` or `.deb`
 
 ## Quick start
@@ -74,6 +74,62 @@ Paste both in **Settings → AI assistant**, pick a voice and language, and enab
 ## Import / Export
 
 Use **Export** to save everything (routines, tasks, icons and sounds) into a single self-contained JSON file, and **Import** to restore it. API keys are never exported.
+
+The backup file is a JSON object with the following shape:
+
+```json
+{
+  "version": 2,
+  "exportedAt": "2026-08-08T21:16:39.0250943-06:00",
+  "routines": [
+    {
+      "id": 1,
+      "hour": 8,
+      "minute": 0,
+      "title": "Deep work",
+      "description": "2 hours of focused coding",
+      "icon": "",
+      "sound": "file:custom_0123456789abcdef0123456789abcdef.ogg",
+      "enabled": true,
+      "useAI": true
+    }
+  ],
+  "todos": [
+    {
+      "id": 1,
+      "text": "Review pull requests",
+      "completed": false,
+      "createdAt": "2026-08-08T08:00:00.000Z",
+      "completedAt": null
+    }
+  ],
+  "icons": [],
+  "sounds": [
+    {
+      "name": "custom_0123456789abcdef0123456789abcdef.ogg",
+      "data": "<base64-encoded file content>"
+    }
+  ]
+}
+```
+
+**Routine fields:**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | number | Unique identifier |
+| `hour` | number | Hour of the notification (0-23) |
+| `minute` | number | Minute of the notification (0-59) |
+| `title` | string | Routine name (shown in the notification) |
+| `description` | string | Detail shown in the app |
+| `icon` | string | Custom icon reference, empty for default |
+| `sound` | string | Sound reference — `file:<name>` for a custom sound, empty for default |
+| `enabled` | boolean | Whether the routine is active |
+| `useAI` | boolean | Generate the message with AI instead of `title` |
+
+**Embedded assets:** images and sounds are stored in `icons` / `sounds` as `{ "name", "data" }` where `data` is the file content encoded in base64. A routine references an asset by name, e.g. `sound: "file:custom_0123456789abcdef0123456789abcdef.ogg"` and the corresponding entry in `sounds` carries the actual bytes. This keeps every backup fully self-contained and portable.
+
+**Legacy format:** a plain array of routines is also accepted on import — the `message` field from older versions is migrated to `title` automatically.
 
 ## Data storage
 
