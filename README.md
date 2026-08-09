@@ -4,7 +4,7 @@
 ![Platforms](https://img.shields.io/badge/platform-windows%20%7C%20macos%20%7C%20linux-30363d?style=for-the-badge&labelColor=21262d)
 ![UI Languages](https://img.shields.io/badge/ui-9%20languages-30363d?style=for-the-badge&labelColor=21262d)
 
-Cross-platform desktop app to keep your daily routine on track with scheduled notifications, custom sounds and AI-powered messages.
+Your routine shouldn't be a list you forget. RoutineNotify turns it into a voice that reminds you — on time, every time.
 
 ## Screenshots
 
