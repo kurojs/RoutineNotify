@@ -2,14 +2,31 @@ import type { Routine } from '../shared/types'
 
 const MAX_TIMEOUT = 2 ** 31 - 1
 
-function nextOccurrence(now: Date, hour: number, minute: number): Date {
+function isDayAllowed(now: Date, days: number[] | undefined): boolean {
+  if (!days || days.length === 0) return true
+  return days.includes(now.getDay())
+}
+
+function nextOccurrence(
+  now: Date,
+  hour: number,
+  minute: number,
+  days?: number[]
+): Date {
   const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0, 0)
-  if (candidate.getTime() > now.getTime()) {
+  if (candidate.getTime() > now.getTime() && isDayAllowed(candidate, days)) {
     return candidate
   }
-  const next = new Date(now)
-  next.setDate(next.getDate() + 1)
-  return new Date(next.getFullYear(), next.getMonth(), next.getDate(), hour, minute, 0, 0)
+  // Busca el próximo día permitido a partir de mañana (máximo 8 días = semana + margen).
+  const probe = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0, 0)
+  for (let offset = 1; offset <= 8; offset++) {
+    probe.setDate(probe.getDate() + 1)
+    if (isDayAllowed(probe, days)) {
+      return new Date(probe.getTime())
+    }
+  }
+  // Fallback de seguridad: no debería llegar acá con `days` válido.
+  return new Date(candidate.getTime() + 24 * 60 * 60 * 1000)
 }
 
 export class Scheduler {
@@ -31,7 +48,7 @@ export class Scheduler {
 
   private scheduleRoutine(routine: Routine): void {
     const now = new Date()
-    const target = nextOccurrence(now, routine.hour, routine.minute)
+    const target = nextOccurrence(now, routine.hour, routine.minute, routine.days)
     const delay = target.getTime() - now.getTime()
 
     const timer = setTimeout(() => {

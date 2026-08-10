@@ -8,6 +8,10 @@ export interface Routine {
   sound: string
   enabled: boolean
   useAI: boolean
+  /** Días de la semana en que corre: 0=domingo ... 6=sábado. undefined = todos los días. */
+  days?: number[]
+  /** Prompt IA personalizado para esta rutina (gana sobre el global). */
+  prompt?: string
 }
 
 export type LegacyRoutine = Routine & { message?: string }
@@ -22,7 +26,9 @@ export function migrateRoutine(raw: Partial<LegacyRoutine>): Routine {
     icon: raw.icon ?? '',
     sound: raw.sound ?? '',
     enabled: raw.enabled ?? true,
-    useAI: raw.useAI ?? false
+    useAI: raw.useAI ?? false,
+    days: raw.days,
+    prompt: raw.prompt
   }
 }
 
@@ -75,7 +81,10 @@ export const DEFAULT_SETTINGS: Settings = {
   geminiModel: 'gemini-2.5-flash',
   language: 'English',
   uiLanguage: 'en',
-  theme: 'light'
+  theme: 'light',
+  openAtLogin: false,
+  aiPrompt: '',
+  startInTray: false
 }
 
 export interface Settings {
@@ -86,6 +95,12 @@ export interface Settings {
   language: string
   uiLanguage: string
   theme: Theme
+  /** Iniciar la app automáticamente al iniciar sesión en el sistema. */
+  openAtLogin: boolean
+  /** Prompt IA global (personalidad/instrucciones). Vacío = prompt por defecto. */
+  aiPrompt: string
+  /** Iniciar minimizada en la bandeja del sistema, sin abrir la ventana. */
+  startInTray: boolean
 }
 
 export interface GeminiModel {
@@ -139,4 +154,17 @@ export interface BackupData {
 export interface ImportResult {
   routines: Routine[]
   todos: Todo[]
+}
+
+export type UpdaterEvent =
+  | { type: 'checking' }
+  | { type: 'available'; version: string }
+  | { type: 'not-available' }
+  | { type: 'downloading'; percent: number }
+  | { type: 'downloaded'; version: string }
+  | { type: 'error'; message: string }
+
+export interface AppInfo {
+  version: string
+  homepage: string
 }

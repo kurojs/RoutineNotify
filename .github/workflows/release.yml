@@ -9,53 +9,32 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Windows
-            os: windows-latest
-            command: npm run build:win
-            files: |
-              release/RoutineNotify Setup *.exe
-          - name: macOS
-            os: macos-latest
-            command: npm run build:mac
-            files: |
-              release/RoutineNotify-*.dmg
-          - name: Linux
-            os: ubuntu-latest
-            command: npm run build:linux
-            files: |
-              release/*.AppImage
-              release/*.deb
-    runs-on: ${{ matrix.os }}
+  release:
+    runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y fakeroot
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and package
-        shell: bash
-        run: |
-          ${{ matrix.command }} || ${{ matrix.command }}
+      - name: Build renderer and main process
+        run: npm run build
 
-      - name: Upload to release
-        uses: softprops/action-gh-release@v2
+      - name: Package and publish release
+        run: npx electron-builder --win --publish=always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          files: ${{ matrix.files }}
-          fail_on_unmatched_files: true
+          name: routine-notify-windows
+          path: |
+            release/*.exe
+            release/latest.yml
+          if-no-files-found: error

@@ -1,10 +1,11 @@
-import { app, BrowserWindow, Notification, Tray, Menu, ipcMain, nativeImage, shell } from 'electron'
+import { app, BrowserWindow, Notification, Tray, Menu, ipcMain, nativeImage } from 'electron'
 import { join } from 'path'
 import { readFile } from 'fs/promises'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { Scheduler } from './scheduler'
 import { generateMessage, buildAiPrompt, listGeminiModels } from './ai'
 import { synthesizeSpeech } from './tts'
+import { autoUpdater } from 'electron-updater'
 import {
   loadRoutines,
   saveRoutines,
@@ -19,13 +20,27 @@ import type {
   Settings,
   BackupFile,
   BackupData,
-  ImportResult
+  ImportResult,
+  UpdaterEvent,
+  AppInfo
 } from '../shared/types'
 import { isCustomSound, getCustomSoundName, migrateRoutine } from '../shared/types'
 
 app.setName('Routine Notify')
 app.setAppUserModelId('com.routine.notify')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+
+// Una sola instancia: evita notificaciones duplicadas cuando hay dos procesos
+// corriendo con el mismo userData (ej. dev + app instalada).
+const hasSingleInstanceLock = app.requestSingleInstanceLock()
+
+if (!hasSingleInstanceLock) {
+  app.quit()
+}
+
+app.on('second-instance', () => {
+  showMainWindow()
+})
 
 let tray: Tray | null = null
 let mainWindow: BrowserWindow | null = null
@@ -41,7 +56,10 @@ let currentSettings: Settings = {
   geminiModel: 'gemini-2.5-flash',
   language: 'English',
   uiLanguage: 'en',
-  theme: 'light'
+  theme: 'light',
+  openAtLogin: false,
+  aiPrompt: '',
+  startInTray: false
 }
 
 function getIconPath(): string | null {
@@ -97,6 +115,20 @@ function showMainWindow(): void {
   }
 }
 
+function applyLoginItemSettings(openAtLogin: boolean): void {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return
+  const options: Electron.Settings = {
+    openAtLogin,
+    openAsHidden: true
+  }
+  if (!app.isPackaged) {
+    // En dev, process.execPath es electron.exe; hay que pasar el path de la app.
+    options.path = process.execPath
+    options.args = [app.getAppPath()]
+  }
+  app.setLoginItemSettings(options)
+}
+
 function createMainWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1100,
@@ -115,7 +147,9 @@ function createMainWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow?.show()
+    if (!currentSettings.startInTray) {
+      mainWindow?.show()
+    }
   })
 
   mainWindow.on('close', (event) => {
@@ -216,6 +250,35 @@ function sendAiError(code: string, detail?: string): void {
   mainWindow?.webContents.send('ai:error', { code, detail })
 }
 
+function sendUpdaterEvent(event: UpdaterEvent): void {
+  mainWindow?.webContents.send('updater:event', event)
+}
+
+function setupUpdater(): void {
+  if (!app.isPackaged) return
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('checking-for-update', () => {
+    sendUpdaterEvent({ type: 'checking' })
+  })
+  autoUpdater.on('update-available', (info) => {
+    sendUpdaterEvent({ type: 'available', version: info.version })
+  })
+  autoUpdater.on('update-not-available', () => {
+    sendUpdaterEvent({ type: 'not-available' })
+  })
+  autoUpdater.on('download-progress', (progress) => {
+    sendUpdaterEvent({ type: 'downloading', percent: progress.percent })
+  })
+  autoUpdater.on('update-downloaded', (info) => {
+    sendUpdaterEvent({ type: 'downloaded', version: info.version })
+  })
+  autoUpdater.on('error', (error) => {
+    sendUpdaterEvent({ type: 'error', message: error.message })
+  })
+}
+
 async function onRoutineTrigger(routine: Routine): Promise<void> {
   const { settings } = { settings: currentSettings }
 
@@ -224,7 +287,7 @@ async function onRoutineTrigger(routine: Routine): Promise<void> {
 
   if (aiReady) {
     try {
-      const prompt = buildAiPrompt(routine, settings.language)
+      const prompt = buildAiPrompt(routine, settings.language, settings.aiPrompt)
       const result = await generateMessage(
         settings.geminiApiKey,
         settings.geminiModel,
@@ -386,6 +449,7 @@ function setupIpc(): void {
   ipcMain.handle('settings:save', async (_event, settings: Settings) => {
     currentSettings = settings
     await saveSettings(settings)
+    applyLoginItemSettings(settings.openAtLogin)
     return true
   })
 
@@ -415,6 +479,43 @@ function setupIpc(): void {
     const { shell } = await import('electron')
     await shell.openExternal(url)
     return true
+  })
+
+  ipcMain.handle('app:getInfo', (): AppInfo => ({
+    version: app.getVersion(),
+    homepage: 'https://github.com/kurojs/RoutineNotify'
+  }))
+
+  ipcMain.handle('updater:check', async () => {
+    if (!app.isPackaged) return { ok: false }
+    try {
+      await autoUpdater.checkForUpdates()
+      return { ok: true }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      sendUpdaterEvent({ type: 'error', message: detail })
+      return { ok: false }
+    }
+  })
+
+  ipcMain.handle('updater:download', async () => {
+    if (!app.isPackaged) return { ok: false }
+    try {
+      await autoUpdater.downloadUpdate()
+      return { ok: true }
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      sendUpdaterEvent({ type: 'error', message: detail })
+      return { ok: false }
+    }
+  })
+
+  ipcMain.handle('updater:install', () => {
+    if (!app.isPackaged) return { ok: false }
+    setImmediate(() => {
+      autoUpdater.quitAndInstall()
+    })
+    return { ok: true }
   })
 
   const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.flac']
@@ -466,48 +567,26 @@ function setupIpc(): void {
 }
 
 app.whenReady().then(async () => {
+  if (!hasSingleInstanceLock) return
+
   electronApp.setAppUserModelId('com.routine.notify')
 
   if (process.platform !== 'darwin') {
     Menu.setApplicationMenu(null)
   }
 
-  if (is.dev && process.platform === 'win32') {
-    try {
-      const { existsSync } = await import('fs')
-      const aumid = process.execPath
-      const shortcutPath = join(
-        app.getPath('appData'),
-        'Microsoft',
-        'Windows',
-        'Start Menu',
-        'Programs',
-        'Routine Notify.lnk'
-      )
-      if (!existsSync(shortcutPath)) {
-        const ok = shell.writeShortcutLink(shortcutPath, 'create', {
-          target: process.execPath,
-          args: `"${app.getAppPath()}"`,
-          appUserModelId: aumid,
-          description: 'Routine Notify',
-          icon: getIconPath() ?? process.execPath
-        })
-        console.log('[notify] dev shortcut created:', ok)
-      }
-    } catch (error) {
-      console.error('[notify] failed to create dev shortcut:', error)
-    }
-  }
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
   currentSettings = await loadSettings()
   currentRoutines = await loadRoutines()
+  applyLoginItemSettings(currentSettings.openAtLogin)
 
   setupIpc()
   createMainWindow()
   createTray()
+  setupUpdater()
   scheduler.setRoutines(currentRoutines)
 })
 

@@ -5,10 +5,26 @@ import type {
   Settings,
   ImportResult,
   GeminiModel,
-  ServiceErrorInfo
+  ServiceErrorInfo,
+  UpdaterEvent,
+  AppInfo
 } from '../shared/types'
 
 const api = {
+  platform: process.platform,
+  getAppInfo: (): Promise<AppInfo> => ipcRenderer.invoke('app:getInfo'),
+  checkForUpdates: (): Promise<{ ok: boolean }> => ipcRenderer.invoke('updater:check'),
+  downloadUpdate: (): Promise<{ ok: boolean }> => ipcRenderer.invoke('updater:download'),
+  installUpdate: (): Promise<{ ok: boolean }> => ipcRenderer.invoke('updater:install'),
+  onUpdaterEvent: (callback: (event: UpdaterEvent) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: UpdaterEvent): void => {
+      callback(payload)
+    }
+    ipcRenderer.on('updater:event', listener)
+    return () => {
+      ipcRenderer.removeListener('updater:event', listener)
+    }
+  },
   getRoutines: (): Promise<Routine[]> => ipcRenderer.invoke('routines:get'),
   saveRoutines: (routines: Routine[]): Promise<boolean> =>
     ipcRenderer.invoke('routines:save', routines),

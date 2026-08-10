@@ -7,10 +7,28 @@ export interface AiMessageResult {
   message: string
 }
 
-export function buildAiPrompt(routine: Routine, language: string): string {
+export function buildAiPrompt(
+  routine: Routine,
+  language: string,
+  globalPrompt?: string
+): string {
   const context = routine.description?.trim()
     ? `It's time for: "${routine.title}". Context: "${routine.description.trim()}".`
     : `It's time for: "${routine.title}".`
+
+  const style = routine.prompt?.trim() || globalPrompt?.trim()
+
+  if (style) {
+    return [
+      `You are a motivational routine assistant. ${context}`,
+      '',
+      style,
+      '',
+      `Generate a SHORT motivational message (1-2 sentences, max 200 chars) in ${language}.`,
+      'Reply with ONLY the message text.'
+    ].join('\n')
+  }
+
   return [
     `You are a motivational routine assistant. ${context}`,
     '',

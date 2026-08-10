@@ -4,12 +4,20 @@ import type {
   Settings,
   ImportResult,
   GeminiModel,
-  ServiceErrorInfo
+  ServiceErrorInfo,
+  UpdaterEvent,
+  AppInfo
 } from '../shared/types'
 
 declare global {
   interface Window {
     api: {
+      platform: string
+      getAppInfo: () => Promise<AppInfo>
+      checkForUpdates: () => Promise<{ ok: boolean }>
+      downloadUpdate: () => Promise<{ ok: boolean }>
+      installUpdate: () => Promise<{ ok: boolean }>
+      onUpdaterEvent: (callback: (event: UpdaterEvent) => void) => () => void
       getRoutines: () => Promise<Routine[]>
       saveRoutines: (routines: Routine[]) => Promise<boolean>
       testRoutine: (routine: Routine) => Promise<boolean>

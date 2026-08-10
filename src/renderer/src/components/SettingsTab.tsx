@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { KeyRound, Sparkles, Languages, Globe, ExternalLink, RefreshCw } from 'lucide-react'
+import { KeyRound, Sparkles, Languages, Globe, ExternalLink, RefreshCw, MessageSquare, Power, Moon } from 'lucide-react'
 import { useStore } from '../store'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Switch } from './ui/switch'
 import { translate } from '../lib/i18n'
 import { LANGUAGES, UI_LANGUAGES } from '../../../shared/types'
 import type { GeminiModel } from '../../../shared/types'
@@ -38,6 +39,7 @@ export function SettingsTab(): React.JSX.Element {
 
   const bothKeys = Boolean(settings.geminiApiKey && settings.elevenLabsApiKey)
   const oneKey = Boolean(settings.geminiApiKey) !== Boolean(settings.elevenLabsApiKey)
+  const canAutoStart = window.api.platform === 'win32' || window.api.platform === 'darwin'
 
   const loadModels = async (): Promise<void> => {
     if (!settings.geminiApiKey) return
@@ -99,6 +101,61 @@ export function SettingsTab(): React.JSX.Element {
           </Select>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Moon className="h-4 w-4 text-primary" />
+            {translate(uiLanguage, 'themeTitle')}
+          </CardTitle>
+          <CardDescription>{translate(uiLanguage, 'themeDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+            <p className="text-sm text-muted-foreground">{translate(uiLanguage, 'darkMode')}</p>
+            <Switch
+              checked={settings.theme === 'dark'}
+              onCheckedChange={(v) => update({ theme: v ? 'dark' : 'light' })}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {canAutoStart && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Power className="h-4 w-4 text-primary" />
+              {translate(uiLanguage, 'openAtLogin')}
+            </CardTitle>
+            <CardDescription>{translate(uiLanguage, 'openAtLoginHint')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">{translate(uiLanguage, 'openAtLogin')}</p>
+                <p className="text-xs text-muted-foreground">{translate(uiLanguage, 'openAtLoginHint')}</p>
+              </div>
+              <Switch
+                checked={settings.openAtLogin}
+                onCheckedChange={(v) => update({ openAtLogin: v })}
+              />
+            </div>
+            {settings.openAtLogin && (
+              <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                <div>
+                  <p className="text-sm font-medium">{translate(uiLanguage, 'startInTray')}</p>
+                  <p className="text-xs text-muted-foreground">{translate(uiLanguage, 'startInTrayHint')}</p>
+                </div>
+                <Switch
+                  checked={settings.startInTray}
+                  onCheckedChange={(v) => update({ startInTray: v })}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -250,6 +307,21 @@ export function SettingsTab(): React.JSX.Element {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              {translate(uiLanguage, 'globalPrompt')}
+            </Label>
+            <textarea
+              value={settings.aiPrompt}
+              maxLength={1000}
+              onChange={(e) => update({ aiPrompt: e.target.value })}
+              placeholder={translate(uiLanguage, 'globalPromptPlaceholder')}
+              className="min-h-[72px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            />
+            <p className="text-xs text-muted-foreground">{translate(uiLanguage, 'globalPromptHint')}</p>
           </div>
         </CardContent>
       </Card>

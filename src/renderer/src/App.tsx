@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { CalendarClock, ListTodo, Settings2, Sparkles, Moon, Sun } from 'lucide-react'
+import { CalendarClock, ListTodo, Settings2, Sparkles, Info } from 'lucide-react'
 import { useStore } from './store'
 import { RoutinesTab } from './components/RoutinesTab'
 import { TodosTab } from './components/TodosTab'
 import { SettingsTab } from './components/SettingsTab'
+import { AboutTab } from './components/AboutTab'
 import { cn } from './lib/utils'
 import { getTranslation, translate, type TranslationKey } from './lib/i18n'
 import type { ServiceErrorCode } from '../../shared/types'
 
-type Tab = 'routines' | 'todos' | 'settings'
+type Tab = 'routines' | 'todos' | 'settings' | 'about'
 
 const ERROR_KEYS: Record<ServiceErrorCode, TranslationKey> = {
   invalid_api_key: 'errInvalidKey',
@@ -36,7 +37,6 @@ function App(): React.JSX.Element {
   const load = useStore((s) => s.load)
   const loading = useStore((s) => s.loading)
   const settings = useStore((s) => s.settings)
-  const saveSettings = useStore((s) => s.saveSettings)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const audioQueueRef = useRef<Array<{ filePath: string; cleanup: boolean; url: string }>>([])
   const audioPlayingRef = useRef(false)
@@ -106,10 +106,6 @@ function App(): React.JSX.Element {
     }
   }, [load])
 
-  const toggleTheme = (): void => {
-    void saveSettings({ ...settings, theme: settings.theme === 'dark' ? 'light' : 'dark' })
-  }
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -169,15 +165,16 @@ function App(): React.JSX.Element {
 
         <div className="border-t p-3">
           <button
-            onClick={toggleTheme}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            {settings.theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
+            onClick={() => setTab('about')}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              tab === 'about'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             )}
-            {settings.theme === 'dark' ? tKey('lightMode') : tKey('darkMode')}
+          >
+            <Info className="h-4 w-4" />
+            {tKey('navAbout')}
           </button>
         </div>
       </aside>
@@ -187,6 +184,7 @@ function App(): React.JSX.Element {
           {tab === 'routines' && <RoutinesTab />}
           {tab === 'todos' && <TodosTab />}
           {tab === 'settings' && <SettingsTab />}
+          {tab === 'about' && <AboutTab />}
         </div>
       </main>
     </div>
