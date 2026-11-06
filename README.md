@@ -48,6 +48,24 @@ Download the installer from the [releases page](https://github.com/kurojs/Routin
 - **macOS:** `RoutineNotify-<version>.dmg` (Intel) and `RoutineNotify-<version>-arm64.dmg` (Apple Silicon)
 - **Linux:** `.AppImage` or `.deb`
 
+### Arch Linux (AUR)
+
+RoutineNotify is available on the [AUR](https://aur.archlinux.org/packages/routine-notify-bin) as `routine-notify-bin`:
+
+```bash
+yay -S routine-notify-bin
+```
+
+Any other AUR helper works too (`paru -S routine-notify-bin`), or build it manually:
+
+```bash
+git clone https://aur.archlinux.org/routine-notify-bin.git
+cd routine-notify-bin
+makepkg -si
+```
+
+The package installs the app to `/opt/RoutineNotify` and adds a `routine-notify` command and a desktop entry. For the system tray icon, install `libappindicator-gtk3`. Update through your AUR helper (`yay -Syu`) rather than the in-app updater.
+
 ## Quick start
 
 1. Install and launch the app — it starts minimized in the system tray.
